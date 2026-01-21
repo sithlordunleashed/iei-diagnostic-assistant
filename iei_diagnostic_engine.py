@@ -173,6 +173,78 @@ QUESTIONS = {
         is_nodal=False
     ),
     
+    # Batch 1: High-value questions from original 35
+    "Q2": Question(
+        id="Q2",
+        text="Bleeding tendency? (Petechiae, epistaxis, easy bruising, bloody diarrhea, melena)",
+        answer_options=["No", "Yes_mild", "Yes_severe"],
+        base_information_gain=0.88,
+        is_nodal=False
+    ),
+    "Q6": Question(
+        id="Q6",
+        text="Sex of the patient?",
+        answer_options=["Male", "Female"],
+        base_information_gain=0.18,
+        is_nodal=False
+    ),
+    "Q7": Question(
+        id="Q7",
+        text="History of eczema or rash?",
+        answer_options=["No", "Yes_mild", "Yes_severe"],
+        base_information_gain=0.98,
+        is_nodal=False
+    ),
+    "Q11": Question(
+        id="Q11",
+        text="Lymphoproliferation? (Hepatomegaly, splenomegaly, lymphadenopathy)",
+        answer_options=["No", "Yes_one_site", "Yes_multiple_sites"],
+        base_information_gain=1.25,
+        is_nodal=False
+    ),
+    "Q13": Question(
+        id="Q13",
+        text="Congenital malformation(s)?",
+        answer_options=["No", "Yes_cardiac", "Yes_skeletal", "Yes_other", "Yes_multiple"],
+        base_information_gain=0.78,
+        is_nodal=False
+    ),
+    "Q14": Question(
+        id="Q14",
+        text="Dysmorphism or peculiar facies?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.82,
+        is_nodal=False
+    ),
+    "Q18": Question(
+        id="Q18",
+        text="Polycythemia/hypercellularity? (Leukocytosis, eosinophilia, neutrophilia, thrombocytosis)",
+        answer_options=["No", "Yes_eosinophilia", "Yes_leukocytosis", "Yes_other"],
+        base_information_gain=0.72,
+        is_nodal=False
+    ),
+    "Q19": Question(
+        id="Q19",
+        text="Silver hair or hypopigmentation?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.58,
+        is_nodal=False
+    ),
+    "Q20": Question(
+        id="Q20",
+        text="Dystrophic nails?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.42,
+        is_nodal=False
+    ),
+    "Q21": Question(
+        id="Q21",
+        text="Alopecia or vitiligo?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.52,
+        is_nodal=False
+    ),
+    
     # Additional high-IG questions (top 10)
     "Q4": Question(
         id="Q4",
@@ -571,6 +643,328 @@ CONDITIONAL_PROBABILITIES = {
             'Immune_Dysregulation': 0.03,
             'Combined_ID': 0.015,
             'Bone_Marrow_Failure': 0.005
+        }
+    },
+    
+    # BATCH 1: Additional questions from original 35
+    
+    # Q2: Bleeding tendency - Platelet/coagulation issues
+    "Q2": {
+        "Yes_severe": {
+            'Bone_Marrow_Failure': 0.70,   # WAS, congenital thrombocytopenia
+            'Immune_Dysregulation': 0.15,  # Severe autoimmune cytopenias
+            'Complement_Deficiency': 0.08,  # Some complement defects
+            'Combined_ID': 0.04,
+            'Antibody_Deficiency': 0.02,
+            'Phagocyte_Defect': 0.005,
+            'Innate_Immunity': 0.003,
+            'Autoinflammatory': 0.002
+        },
+        "Yes_mild": {
+            'Immune_Dysregulation': 0.35,  # CVID with ITP
+            'Bone_Marrow_Failure': 0.30,
+            'Antibody_Deficiency': 0.20,
+            'Complement_Deficiency': 0.08,
+            'Combined_ID': 0.04,
+            'Autoinflammatory': 0.02,
+            'Phagocyte_Defect': 0.005,
+            'Innate_Immunity': 0.005
+        },
+        "No": {
+            'Antibody_Deficiency': 0.50,
+            'Phagocyte_Defect': 0.20,
+            'Autoinflammatory': 0.12,
+            'Combined_ID': 0.08,
+            'Innate_Immunity': 0.05,
+            'Complement_Deficiency': 0.03,
+            'Immune_Dysregulation': 0.015,
+            'Bone_Marrow_Failure': 0.005
+        }
+    },
+    
+    # Q6: Sex - X-linked disorders
+    "Q6": {
+        "Male": {
+            'Antibody_Deficiency': 0.40,   # XLA more likely
+            'Phagocyte_Defect': 0.20,      # X-CGD
+            'Combined_ID': 0.15,           # X-SCID
+            'Bone_Marrow_Failure': 0.10,   # WAS, XLP
+            'Immune_Dysregulation': 0.08,  # IPEX, XLP
+            'Innate_Immunity': 0.04,
+            'Autoinflammatory': 0.02,
+            'Complement_Deficiency': 0.01
+        },
+        "Female": {
+            'Antibody_Deficiency': 0.50,   # CVID, IgAD (no X-linked bias)
+            'Autoinflammatory': 0.15,      # Many AR
+            'Phagocyte_Defect': 0.10,      # AR forms
+            'Immune_Dysregulation': 0.10,
+            'Combined_ID': 0.08,           # AR forms
+            'Complement_Deficiency': 0.04,
+            'Innate_Immunity': 0.02,
+            'Bone_Marrow_Failure': 0.01    # Lower (many X-linked)
+        }
+    },
+    
+    # Q7: Eczema/rash - T-cell, allergic, phagocyte
+    "Q7": {
+        "Yes_severe": {
+            'Phagocyte_Defect': 0.40,      # HIES
+            'Combined_ID': 0.30,           # Omenn, some SCID
+            'Bone_Marrow_Failure': 0.15,   # WAS
+            'Immune_Dysregulation': 0.10,  # IPEX
+            'Innate_Immunity': 0.03,
+            'Antibody_Deficiency': 0.015,
+            'Autoinflammatory': 0.003,
+            'Complement_Deficiency': 0.002
+        },
+        "Yes_mild": {
+            'Antibody_Deficiency': 0.40,   # CVID, IgAD with atopy
+            'Immune_Dysregulation': 0.20,
+            'Phagocyte_Defect': 0.15,
+            'Combined_ID': 0.12,
+            'Innate_Immunity': 0.08,
+            'Bone_Marrow_Failure': 0.03,
+            'Autoinflammatory': 0.015,
+            'Complement_Deficiency': 0.005
+        },
+        "No": {
+            'Antibody_Deficiency': 0.48,
+            'Autoinflammatory': 0.15,
+            'Complement_Deficiency': 0.12,
+            'Innate_Immunity': 0.10,
+            'Phagocyte_Defect': 0.08,
+            'Immune_Dysregulation': 0.04,
+            'Combined_ID': 0.02,
+            'Bone_Marrow_Failure': 0.01
+        }
+    },
+    
+    # Q11: Lymphoproliferation - Dysregulation, lymphoma risk
+    "Q11": {
+        "Yes_multiple_sites": {
+            'Immune_Dysregulation': 0.50,  # ALPS, autoimmune lymphoproliferative
+            'Antibody_Deficiency': 0.25,   # CVID with granulomas
+            'Combined_ID': 0.12,           # Some CID
+            'Bone_Marrow_Failure': 0.05,   # XLP
+            'Innate_Immunity': 0.04,
+            'Phagocyte_Defect': 0.02,
+            'Autoinflammatory': 0.015,
+            'Complement_Deficiency': 0.005
+        },
+        "Yes_one_site": {
+            'Antibody_Deficiency': 0.45,
+            'Immune_Dysregulation': 0.25,
+            'Combined_ID': 0.12,
+            'Innate_Immunity': 0.08,
+            'Phagocyte_Defect': 0.05,
+            'Bone_Marrow_Failure': 0.03,
+            'Autoinflammatory': 0.015,
+            'Complement_Deficiency': 0.005
+        },
+        "No": {
+            'Autoinflammatory': 0.30,
+            'Antibody_Deficiency': 0.25,
+            'Phagocyte_Defect': 0.18,
+            'Complement_Deficiency': 0.12,
+            'Innate_Immunity': 0.08,
+            'Combined_ID': 0.04,
+            'Immune_Dysregulation': 0.02,
+            'Bone_Marrow_Failure': 0.01
+        }
+    },
+    
+    # Q13: Congenital malformations - Syndromic IEI
+    "Q13": {
+        "Yes_multiple": {
+            'Combined_ID': 0.60,           # DiGeorge, other syndromic
+            'Bone_Marrow_Failure': 0.20,   # Some syndromes
+            'Immune_Dysregulation': 0.10,
+            'Phagocyte_Defect': 0.05,
+            'Complement_Deficiency': 0.03,
+            'Antibody_Deficiency': 0.015,
+            'Innate_Immunity': 0.003,
+            'Autoinflammatory': 0.002
+        },
+        "Yes_cardiac": {
+            'Combined_ID': 0.70,           # DiGeorge primarily
+            'Complement_Deficiency': 0.12,
+            'Bone_Marrow_Failure': 0.08,
+            'Immune_Dysregulation': 0.05,
+            'Antibody_Deficiency': 0.03,
+            'Phagocyte_Defect': 0.015,
+            'Innate_Immunity': 0.003,
+            'Autoinflammatory': 0.002
+        },
+        "Yes_skeletal": {
+            'Combined_ID': 0.45,           # Some SCID variants
+            'Bone_Marrow_Failure': 0.25,
+            'Phagocyte_Defect': 0.15,      # Some phagocyte syndromes
+            'Immune_Dysregulation': 0.08,
+            'Antibody_Deficiency': 0.04,
+            'Complement_Deficiency': 0.02,
+            'Innate_Immunity': 0.005,
+            'Autoinflammatory': 0.005
+        },
+        "Yes_other": {
+            'Combined_ID': 0.40,
+            'Immune_Dysregulation': 0.20,
+            'Bone_Marrow_Failure': 0.15,
+            'Phagocyte_Defect': 0.12,
+            'Antibody_Deficiency': 0.08,
+            'Complement_Deficiency': 0.03,
+            'Innate_Immunity': 0.015,
+            'Autoinflammatory': 0.005
+        },
+        "No": {
+            'Antibody_Deficiency': 0.50,
+            'Autoinflammatory': 0.15,
+            'Phagocyte_Defect': 0.12,
+            'Innate_Immunity': 0.10,
+            'Immune_Dysregulation': 0.08,
+            'Complement_Deficiency': 0.03,
+            'Combined_ID': 0.015,
+            'Bone_Marrow_Failure': 0.005
+        }
+    },
+    
+    # Q14: Dysmorphism/peculiar facies - Syndromic
+    "Q14": {
+        "Yes": {
+            'Combined_ID': 0.55,           # DiGeorge, syndromic SCID
+            'Bone_Marrow_Failure': 0.20,   # Some syndromes
+            'Phagocyte_Defect': 0.12,      # HIES
+            'Immune_Dysregulation': 0.08,
+            'Antibody_Deficiency': 0.03,
+            'Complement_Deficiency': 0.015,
+            'Innate_Immunity': 0.003,
+            'Autoinflammatory': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.50,
+            'Autoinflammatory': 0.15,
+            'Phagocyte_Defect': 0.12,
+            'Innate_Immunity': 0.10,
+            'Immune_Dysregulation': 0.08,
+            'Complement_Deficiency': 0.03,
+            'Combined_ID': 0.015,
+            'Bone_Marrow_Failure': 0.005
+        }
+    },
+    
+    # Q18: Polycythemia/hypercellularity - Inflammatory, allergic
+    "Q18": {
+        "Yes_eosinophilia": {
+            'Phagocyte_Defect': 0.45,      # HIES
+            'Immune_Dysregulation': 0.25,  # IPEX, some dysregulation
+            'Innate_Immunity': 0.15,
+            'Combined_ID': 0.08,
+            'Antibody_Deficiency': 0.04,
+            'Autoinflammatory': 0.02,
+            'Bone_Marrow_Failure': 0.005,
+            'Complement_Deficiency': 0.005
+        },
+        "Yes_leukocytosis": {
+            'Autoinflammatory': 0.40,
+            'Phagocyte_Defect': 0.25,      # LAD
+            'Immune_Dysregulation': 0.15,
+            'Innate_Immunity': 0.10,
+            'Antibody_Deficiency': 0.05,
+            'Combined_ID': 0.03,
+            'Bone_Marrow_Failure': 0.015,
+            'Complement_Deficiency': 0.005
+        },
+        "Yes_other": {
+            'Autoinflammatory': 0.35,
+            'Immune_Dysregulation': 0.25,
+            'Phagocyte_Defect': 0.15,
+            'Antibody_Deficiency': 0.12,
+            'Innate_Immunity': 0.08,
+            'Combined_ID': 0.03,
+            'Complement_Deficiency': 0.015,
+            'Bone_Marrow_Failure': 0.005
+        },
+        "No": {
+            'Antibody_Deficiency': 0.50,
+            'Phagocyte_Defect': 0.15,
+            'Combined_ID': 0.12,
+            'Innate_Immunity': 0.10,
+            'Immune_Dysregulation': 0.08,
+            'Complement_Deficiency': 0.03,
+            'Autoinflammatory': 0.015,
+            'Bone_Marrow_Failure': 0.005
+        }
+    },
+    
+    # Q19: Silver hair/hypopigmentation - Chédiak-Higashi, Griscelli
+    "Q19": {
+        "Yes": {
+            'Phagocyte_Defect': 0.65,      # Chédiak-Higashi
+            'Immune_Dysregulation': 0.20,  # Griscelli type 2 (HLH)
+            'Bone_Marrow_Failure': 0.10,
+            'Combined_ID': 0.03,
+            'Innate_Immunity': 0.015,
+            'Antibody_Deficiency': 0.003,
+            'Autoinflammatory': 0.001,
+            'Complement_Deficiency': 0.001
+        },
+        "No": {
+            'Antibody_Deficiency': 0.47,
+            'Autoinflammatory': 0.15,
+            'Phagocyte_Defect': 0.12,
+            'Innate_Immunity': 0.10,
+            'Immune_Dysregulation': 0.09,
+            'Combined_ID': 0.04,
+            'Complement_Deficiency': 0.02,
+            'Bone_Marrow_Failure': 0.01
+        }
+    },
+    
+    # Q20: Dystrophic nails - Ectodermal dysplasia, HIES
+    "Q20": {
+        "Yes": {
+            'Phagocyte_Defect': 0.50,      # HIES
+            'Innate_Immunity': 0.25,       # NEMO, ectodermal dysplasia with immunodeficiency
+            'Combined_ID': 0.12,
+            'Immune_Dysregulation': 0.08,
+            'Antibody_Deficiency': 0.03,
+            'Bone_Marrow_Failure': 0.015,
+            'Autoinflammatory': 0.003,
+            'Complement_Deficiency': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.48,
+            'Autoinflammatory': 0.15,
+            'Innate_Immunity': 0.10,
+            'Combined_ID': 0.10,
+            'Immune_Dysregulation': 0.09,
+            'Phagocyte_Defect': 0.05,
+            'Complement_Deficiency': 0.02,
+            'Bone_Marrow_Failure': 0.01
+        }
+    },
+    
+    # Q21: Alopecia or vitiligo - Autoimmune/dysregulation
+    "Q21": {
+        "Yes": {
+            'Immune_Dysregulation': 0.60,  # APECED, IPEX
+            'Autoinflammatory': 0.20,
+            'Antibody_Deficiency': 0.12,   # CVID with autoimmunity
+            'Innate_Immunity': 0.04,
+            'Combined_ID': 0.02,
+            'Phagocyte_Defect': 0.015,
+            'Complement_Deficiency': 0.003,
+            'Bone_Marrow_Failure': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.48,
+            'Phagocyte_Defect': 0.18,
+            'Autoinflammatory': 0.12,
+            'Innate_Immunity': 0.10,
+            'Combined_ID': 0.06,
+            'Complement_Deficiency': 0.03,
+            'Immune_Dysregulation': 0.02,
+            'Bone_Marrow_Failure': 0.01
         }
     },
     
