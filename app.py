@@ -387,11 +387,31 @@ with tab2:
     
     # Detailed probability table
     st.subheader("📊 Detailed Probabilities")
-    st.dataframe(
-        probs_df.style.background_gradient(subset=['Probability'], cmap='Blues'),
-        use_container_width=True,
-        hide_index=True
-    )
+    
+    # Color-coded probability display
+    for idx, row in probs_df.iterrows():
+        cat = row['Category']
+        prob = row['Probability']
+        
+        # Color code based on probability
+        if prob > 0.5:
+            color = "🔴"  # High probability
+        elif prob > 0.2:
+            color = "🟡"  # Medium probability
+        elif prob > 0.05:
+            color = "🟢"  # Low probability
+        else:
+            color = "⚪"  # Very low probability
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"{color} **{cat}**")
+        with col2:
+            st.write(f"{prob*100:.1f}%")
+        st.progress(prob)
+        
+        if idx < len(probs_df) - 1:  # Don't add divider after last item
+            st.divider()
 
 # ============================================================================
 # TAB 3: CASE SUMMARY
