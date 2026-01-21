@@ -171,31 +171,44 @@ tab1, tab2, tab3 = st.tabs(["🎯 Diagnostic Interview", "📈 Probability Analy
 
 with tab1:
     # Show diagnosis if complete
-    if st.session_state.diagnosis_complete:
+    if st.session_state.diagnosis_complete and st.session_state.current_result is not None:
         result = st.session_state.current_result
         
         st.markdown('<div class="diagnosis-box">', unsafe_allow_html=True)
         st.success("### ✅ Diagnostic Assessment Complete")
         
-        if result['status'] == 'pattern_detected':
-            st.write(f"**Suspected Diagnosis:** {result['suspected_diagnosis']}")
-            st.write(f"**Confidence:** {result['confidence']*100:.1f}%")
-            st.write(f"**Category:** {result['category'].replace('_', ' ')}")
+        if result.get('status') == 'pattern_detected':
+            st.write(f"**Suspected Diagnosis:** {result.get('suspected_diagnosis', 'Unknown')}")
+            st.write(f"**Confidence:** {result.get('confidence', 0)*100:.1f}%")
+            st.write(f"**Category:** {result.get('category', 'Unknown').replace('_', ' ')}")
             
-            if result['confirm_with']:
+            confirm_with = result.get('confirm_with', [])
+            if confirm_with:
                 st.info("**Recommended confirmatory questions:**")
-                for q_id in result['confirm_with']:
+                for q_id in confirm_with:
                     if q_id in QUESTIONS:
                         st.write(f"- {QUESTIONS[q_id].text}")
         
-        elif result['status'] == 'diagnosis_reached':
-            top_dx = result['top_diagnosis']
-            st.write(f"**Primary Category:** {top_dx[0].replace('_', ' ')}")
-            st.write(f"**Confidence:** {top_dx[1]*100:.1f}%")
+        elif result.get('status') == 'diagnosis_reached':
+            top_dx = result.get('top_diagnosis')
+            if top_dx:
+                st.write(f"**Primary Category:** {top_dx[0].replace('_', ' ')}")
+                st.write(f"**Confidence:** {top_dx[1]*100:.1f}%")
             
-            st.write("**Differential Diagnosis (Top 5):**")
-            for i, (cat, prob) in enumerate(result['differential'], 1):
-                st.write(f"{i}. {cat.replace('_', ' ')}: {prob*100:.1f}%")
+            differential = result.get('differential', [])
+            if differential:
+                st.write("**Differential Diagnosis (Top 5):**")
+                for i, (cat, prob) in enumerate(differential, 1):
+                    st.write(f"{i}. {cat.replace('_', ' ')}: {prob*100:.1f}%")
+        
+        elif result.get('status') == 'questions_exhausted':
+            st.write("**Diagnostic Assessment:**")
+            st.write("All available questions have been asked.")
+            differential = result.get('differential', [])
+            if differential:
+                st.write("**Top Differential Diagnosis:**")
+                for i, (cat, prob) in enumerate(differential, 1):
+                    st.write(f"{i}. {cat.replace('_', ' ')}: {prob*100:.1f}%")
         
         st.markdown('</div>', unsafe_allow_html=True)
         
@@ -415,20 +428,24 @@ with tab3:
     # Diagnostic reasoning
     st.subheader("Diagnostic Reasoning")
     
-    if st.session_state.diagnosis_complete and st.session_state.current_result:
+    if st.session_state.diagnosis_complete and st.session_state.current_result is not None:
         result = st.session_state.current_result
         
         st.write("**Final Assessment:**")
         
-        if result['status'] == 'pattern_detected':
-            st.write(f"- Pattern-based diagnosis: **{result['suspected_diagnosis']}**")
-            st.write(f"- Confidence level: **{result['confidence']*100:.1f}%**")
-            st.write(f"- Primary category: **{result['category'].replace('_', ' ')}**")
+        if result.get('status') == 'pattern_detected':
+            st.write(f"- Pattern-based diagnosis: **{result.get('suspected_diagnosis', 'Unknown')}**")
+            st.write(f"- Confidence level: **{result.get('confidence', 0)*100:.1f}%**")
+            st.write(f"- Primary category: **{result.get('category', 'Unknown').replace('_', ' ')}**")
         
-        elif result['status'] == 'diagnosis_reached':
+        elif result.get('status') == 'diagnosis_reached':
             st.write("**Top Differential Diagnosis:**")
-            for i, (cat, prob) in enumerate(result['differential'], 1):
-                st.write(f"{i}. {cat.replace('_', ' ')}: **{prob*100:.1f}%**")
+            differential = result.get('differential', [])
+            if differential:
+                for i, (cat, prob) in enumerate(differential, 1):
+                    st.write(f"{i}. {cat.replace('_', ' ')}: **{prob*100:.1f}%**")
+            else:
+                st.warning("No differential diagnosis available.")
         
         st.divider()
         

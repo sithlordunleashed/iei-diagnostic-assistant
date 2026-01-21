@@ -127,8 +127,8 @@ QUESTIONS = {
     ),
     "Q15": Question(
         id="Q15",
-        text="Isolates or types of microbes? (Select all that apply)",
-        answer_options=["Fungi", "Bacteria", "Virus", "Mycobacteria", "Parasite", "None"],
+        text="What is the PRIMARY type of pathogen causing infections?",
+        answer_options=["Fungi", "Bacteria", "Virus", "Mycobacteria", "Parasite", "None/Non_infectious"],
         base_information_gain=2.95,
         is_nodal=True,
         nodal_weight=3.5  # Highest nodal weight
@@ -164,6 +164,13 @@ QUESTIONS = {
         base_information_gain=1.65,
         is_nodal=True,
         nodal_weight=2.6
+    ),
+    "Q16": Question(
+        id="Q16",
+        text="Multiple different pathogen types (e.g., bacteria AND fungi)?",
+        answer_options=["No_single_type", "Yes_two_types", "Yes_three_or_more"],
+        base_information_gain=1.25,
+        is_nodal=False
     ),
     
     # Additional high-IG questions (top 10)
@@ -527,6 +534,40 @@ CONDITIONAL_PROBABILITIES = {
             'Phagocyte_Defect': 0.15,
             'Complement_Deficiency': 0.12,
             'Innate_Immunity': 0.08,
+            'Immune_Dysregulation': 0.03,
+            'Combined_ID': 0.015,
+            'Bone_Marrow_Failure': 0.005
+        }
+    },
+    
+    # Q16: Multiple pathogen types - Combined vs specific defects
+    "Q16": {
+        "Yes_three_or_more": {
+            'Combined_ID': 0.70,           # Multiple pathogens = broad defect
+            'Immune_Dysregulation': 0.15,  # HLH, severe CVID
+            'Antibody_Deficiency': 0.08,   # Severe CVID
+            'Phagocyte_Defect': 0.04,
+            'Innate_Immunity': 0.02,
+            'Bone_Marrow_Failure': 0.005,
+            'Autoinflammatory': 0.003,
+            'Complement_Deficiency': 0.002
+        },
+        "Yes_two_types": {
+            'Phagocyte_Defect': 0.45,      # CGD = bacteria + fungi
+            'Combined_ID': 0.30,           # Moderate combined deficiency
+            'Antibody_Deficiency': 0.15,   # CVID with complications
+            'Immune_Dysregulation': 0.05,
+            'Innate_Immunity': 0.03,
+            'Bone_Marrow_Failure': 0.01,
+            'Complement_Deficiency': 0.005,
+            'Autoinflammatory': 0.005
+        },
+        "No_single_type": {
+            'Antibody_Deficiency': 0.50,
+            'Phagocyte_Defect': 0.20,
+            'Innate_Immunity': 0.12,
+            'Autoinflammatory': 0.08,
+            'Complement_Deficiency': 0.05,
             'Immune_Dysregulation': 0.03,
             'Combined_ID': 0.015,
             'Bone_Marrow_Failure': 0.005
