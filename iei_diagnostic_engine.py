@@ -96,9 +96,9 @@ PATHOGNOMONIC_PATTERNS = [
     ),
     PathognomicPattern(
         name="Hyper-IgE Syndrome (STAT3)",
-        triggers=["Q7:Yes", "Q8:Yes", "Q24:Yes", "Q13:Yes"],  # Eczema + Abscesses + Bronchiectasis + Facies
+        triggers=["Q7:Yes_severe", "Q8:Yes", "Q24:Yes", "Q13:Yes"],  # Eczema + Abscesses + Bronchiectasis + Facies
         probability=0.86,
-        category="Phagocyte_Defect",
+        category="Combined_ID",  # HIES is Th17 deficiency, not primary phagocyte defect
         confirm_with=["Q14", "Q20", "Q40"]  # Dysmorphism? Nails? Teeth retention?
     ),
 ]
@@ -112,7 +112,7 @@ QUESTIONS = {
     "Q3": Question(
         id="Q3",
         text="Recurrent infections?",
-        answer_options=["No", "Yes_Many", "Single_Severe", "Non_Infectious"],
+        answer_options=["Yes_single_pathogen", "Yes_multiple_pathogens", "Non_infectious_manifestations"],
         base_information_gain=0.92,
         is_nodal=True,
         nodal_weight=2.5
@@ -136,7 +136,7 @@ QUESTIONS = {
     "Q1": Question(
         id="Q1",
         text="Age at onset?",
-        answer_options=["<6mo", "6mo-5yr", "5-12yr", ">12yr"],
+        answer_options=["<6mo", "6mo-5yr", "5-12yr", "12+_years"],
         base_information_gain=2.35,
         is_nodal=True,
         nodal_weight=3.2
@@ -249,7 +249,7 @@ QUESTIONS = {
     "Q4": Question(
         id="Q4",
         text="Infection site(s)?",
-        answer_options=["Upper_Respiratory", "Lungs", "Skin", "Bone", "Lymph_Nodes", "Liver", "CNS", "Multiple"],
+        answer_options=["Sinopulmonary", "Skin_soft_tissue", "Invasive_deep", "Disseminated_multiple"],
         base_information_gain=1.85,
         is_nodal=False
     ),
@@ -313,11 +313,11 @@ CONDITIONAL_PROBABILITIES = {
             'Bone_Marrow_Failure': 0.005
         },
         "Bacteria": {
-            'Antibody_Deficiency': 0.55,   # Classic sinopulmonary
-            'Phagocyte_Defect': 0.20,      # Abscesses, invasive infections
-            'Complement_Deficiency': 0.10, # Encapsulated bacteria
-            'Combined_ID': 0.08,
-            'Immune_Dysregulation': 0.04,
+            'Antibody_Deficiency': 0.48,   # Softened from 0.55 - Classic sinopulmonary
+            'Phagocyte_Defect': 0.22,      # Boosted - Abscesses, invasive infections
+            'Complement_Deficiency': 0.12, # Encapsulated bacteria
+            'Combined_ID': 0.10,
+            'Immune_Dysregulation': 0.05,
             'Innate_Immunity': 0.02,
             'Autoinflammatory': 0.005,
             'Bone_Marrow_Failure': 0.005
@@ -396,27 +396,27 @@ CONDITIONAL_PROBABILITIES = {
             'Innate_Immunity': 0.01,
             'Bone_Marrow_Failure': 0.01
         },
-        ">12yr": {
-            'Antibody_Deficiency': 0.60,   # CVID, SAD late onset
-            'Complement_Deficiency': 0.15, # May present with rheumatologic
-            'Immune_Dysregulation': 0.10,
-            'Autoinflammatory': 0.08,
-            'Phagocyte_Defect': 0.04,
-            'Combined_ID': 0.02,
-            'Innate_Immunity': 0.005,
-            'Bone_Marrow_Failure': 0.005
+        "12+_years": {
+            'Antibody_Deficiency': 0.50,   # Softened from 0.60 - CVID, SAD late onset
+            'Complement_Deficiency': 0.18,
+            'Immune_Dysregulation': 0.12,
+            'Autoinflammatory': 0.10,
+            'Phagocyte_Defect': 0.06,
+            'Combined_ID': 0.03,
+            'Innate_Immunity': 0.008,
+            'Bone_Marrow_Failure': 0.002
         }
     },
     
     # Q12: Dysgammaglobulinemia - Direct lab correlation
     "Q12": {
         "Hypogammaglobulinemia": {
-            'Antibody_Deficiency': 0.70,
-            'Combined_ID': 0.20,
-            'Immune_Dysregulation': 0.05,
-            'Phagocyte_Defect': 0.02,
-            'Bone_Marrow_Failure': 0.015,
-            'Innate_Immunity': 0.01,
+            'Antibody_Deficiency': 0.55,   # Softened from 0.70
+            'Combined_ID': 0.25,           # Boosted from 0.20
+            'Immune_Dysregulation': 0.10,  # Boosted from 0.05
+            'Phagocyte_Defect': 0.05,
+            'Bone_Marrow_Failure': 0.03,
+            'Innate_Immunity': 0.015,
             'Autoinflammatory': 0.003,
             'Complement_Deficiency': 0.002
         },
@@ -454,45 +454,35 @@ CONDITIONAL_PROBABILITIES = {
     
     # Q3: Recurrent infections - Major partitioner
     "Q3": {
-        "Yes_Many": {
-            'Antibody_Deficiency': 0.50,
+        "Yes_multiple_pathogens": {
+            'Antibody_Deficiency': 0.45,   # Softened from 0.50
             'Phagocyte_Defect': 0.25,
-            'Combined_ID': 0.15,
-            'Complement_Deficiency': 0.05,
-            'Immune_Dysregulation': 0.03,
+            'Combined_ID': 0.18,           # Boosted from 0.15
+            'Complement_Deficiency': 0.06,
+            'Immune_Dysregulation': 0.04,
             'Innate_Immunity': 0.015,
-            'Bone_Marrow_Failure': 0.005,
-            'Autoinflammatory': 0.0
+            'Bone_Marrow_Failure': 0.003,
+            'Autoinflammatory': 0.002
         },
-        "Single_Severe": {
-            'Combined_ID': 0.40,
-            'Phagocyte_Defect': 0.25,
-            'Complement_Deficiency': 0.15,
-            'Innate_Immunity': 0.10,
-            'Antibody_Deficiency': 0.05,
+        "Yes_single_pathogen": {
+            'Phagocyte_Defect': 0.35,
+            'Antibody_Deficiency': 0.25,
+            'Combined_ID': 0.15,
+            'Complement_Deficiency': 0.12,
+            'Innate_Immunity': 0.08,
             'Immune_Dysregulation': 0.03,
-            'Bone_Marrow_Failure': 0.01,
-            'Autoinflammatory': 0.01
+            'Bone_Marrow_Failure': 0.015,
+            'Autoinflammatory': 0.005
         },
-        "Non_Infectious": {
-            'Autoinflammatory': 0.55,
-            'Immune_Dysregulation': 0.30,
-            'Complement_Deficiency': 0.10,
-            'Antibody_Deficiency': 0.03,
-            'Phagocyte_Defect': 0.01,
-            'Combined_ID': 0.005,
+        "Non_infectious_manifestations": {
+            'Autoinflammatory': 0.50,      # Softened from 0.55
+            'Immune_Dysregulation': 0.28,
+            'Complement_Deficiency': 0.12,
+            'Antibody_Deficiency': 0.05,
+            'Phagocyte_Defect': 0.03,
+            'Combined_ID': 0.015,
             'Innate_Immunity': 0.003,
             'Bone_Marrow_Failure': 0.002
-        },
-        "No": {
-            'Autoinflammatory': 0.40,
-            'Immune_Dysregulation': 0.25,
-            'Complement_Deficiency': 0.15,
-            'Antibody_Deficiency': 0.10,
-            'Phagocyte_Defect': 0.05,
-            'Combined_ID': 0.03,
-            'Innate_Immunity': 0.01,
-            'Bone_Marrow_Failure': 0.01
         }
     },
     
@@ -712,11 +702,11 @@ CONDITIONAL_PROBABILITIES = {
         }
     },
     
-    # Q7: Eczema/rash - T-cell, allergic, phagocyte
+    # Q7: Eczema/rash - T-cell, allergic, HIES
     "Q7": {
         "Yes_severe": {
-            'Combined_ID': 0.40,           # WAS, Omenn, some SCID
-            'Phagocyte_Defect': 0.30,      # HIES
+            'Combined_ID': 0.50,           # WAS, Omenn, HIES (Th17 defect) - boosted
+            'Phagocyte_Defect': 0.20,      # True phagocyte (reduced from 0.30)
             'Immune_Dysregulation': 0.15,  # IPEX
             'Bone_Marrow_Failure': 0.08,   # True marrow syndromes
             'Innate_Immunity': 0.04,
@@ -861,10 +851,10 @@ CONDITIONAL_PROBABILITIES = {
     # Q18: Polycythemia/hypercellularity - Inflammatory, allergic
     "Q18": {
         "Yes_eosinophilia": {
-            'Phagocyte_Defect': 0.45,      # HIES
-            'Immune_Dysregulation': 0.25,  # IPEX, some dysregulation
-            'Innate_Immunity': 0.15,
-            'Combined_ID': 0.08,
+            'Combined_ID': 0.45,           # HIES (Th17 defect with eosinophilia)
+            'Phagocyte_Defect': 0.25,      # Other phagocyte conditions
+            'Immune_Dysregulation': 0.15,  # IPEX, some dysregulation
+            'Innate_Immunity': 0.08,
             'Antibody_Deficiency': 0.04,
             'Autoinflammatory': 0.02,
             'Bone_Marrow_Failure': 0.005,
@@ -929,9 +919,9 @@ CONDITIONAL_PROBABILITIES = {
     # Q20: Dystrophic nails - Ectodermal dysplasia, HIES
     "Q20": {
         "Yes": {
-            'Phagocyte_Defect': 0.50,      # HIES
+            'Combined_ID': 0.50,           # HIES (Th17 defect)
             'Innate_Immunity': 0.25,       # NEMO, ectodermal dysplasia with immunodeficiency
-            'Combined_ID': 0.12,
+            'Phagocyte_Defect': 0.12,      # Other phagocyte issues
             'Immune_Dysregulation': 0.08,
             'Antibody_Deficiency': 0.03,
             'Bone_Marrow_Failure': 0.015,
@@ -974,57 +964,47 @@ CONDITIONAL_PROBABILITIES = {
         }
     },
     
-    # Q4: Infection sites
+    # Q4: Infection sites - Grouped by clinical significance
     "Q4": {
-        "Upper_Respiratory": {
-            'Antibody_Deficiency': 0.60,
-            'Complement_Deficiency': 0.15,
-            'Phagocyte_Defect': 0.10,
-            'Combined_ID': 0.08,
-            'Immune_Dysregulation': 0.04,
-            'Innate_Immunity': 0.02,
-            'Bone_Marrow_Failure': 0.005,
+        "Sinopulmonary": {
+            'Antibody_Deficiency': 0.50,   # Softened from 0.60
+            'Complement_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.12,
+            'Combined_ID': 0.10,
+            'Immune_Dysregulation': 0.05,
+            'Innate_Immunity': 0.03,
+            'Bone_Marrow_Failure': 0.015,
             'Autoinflammatory': 0.005
         },
-        "Lungs": {
-            'Antibody_Deficiency': 0.50,
-            'Phagocyte_Defect': 0.25,
-            'Combined_ID': 0.12,
-            'Complement_Deficiency': 0.08,
-            'Immune_Dysregulation': 0.03,
-            'Innate_Immunity': 0.015,
-            'Bone_Marrow_Failure': 0.003,
-            'Autoinflammatory': 0.002
-        },
-        "Skin": {
-            'Phagocyte_Defect': 0.45,
+        "Skin_soft_tissue": {
+            'Phagocyte_Defect': 0.48,      # Skin, abscesses, lymph nodes
             'Antibody_Deficiency': 0.20,
             'Innate_Immunity': 0.15,
             'Combined_ID': 0.10,
-            'Immune_Dysregulation': 0.05,
-            'Bone_Marrow_Failure': 0.03,
-            'Autoinflammatory': 0.01,
-            'Complement_Deficiency': 0.01
+            'Immune_Dysregulation': 0.04,
+            'Bone_Marrow_Failure': 0.02,
+            'Autoinflammatory': 0.005,
+            'Complement_Deficiency': 0.005
         },
-        "CNS": {
-            'Complement_Deficiency': 0.35,
-            'Combined_ID': 0.25,
-            'Antibody_Deficiency': 0.20,
-            'Innate_Immunity': 0.10,
-            'Immune_Dysregulation': 0.05,
-            'Phagocyte_Defect': 0.03,
-            'Bone_Marrow_Failure': 0.01,
-            'Autoinflammatory': 0.01
+        "Invasive_deep": {
+            'Complement_Deficiency': 0.35,  # CNS, blood, bone
+            'Combined_ID': 0.28,
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.10,
+            'Innate_Immunity': 0.05,
+            'Immune_Dysregulation': 0.03,
+            'Bone_Marrow_Failure': 0.008,
+            'Autoinflammatory': 0.002
         },
-        "Multiple": {
-            'Combined_ID': 0.35,
-            'Antibody_Deficiency': 0.30,
-            'Phagocyte_Defect': 0.20,
+        "Disseminated_multiple": {
+            'Combined_ID': 0.45,           # Multiple sites = broad defect
+            'Antibody_Deficiency': 0.25,
+            'Phagocyte_Defect': 0.15,
             'Immune_Dysregulation': 0.08,
             'Complement_Deficiency': 0.04,
             'Innate_Immunity': 0.02,
-            'Bone_Marrow_Failure': 0.005,
-            'Autoinflammatory': 0.005
+            'Bone_Marrow_Failure': 0.008,
+            'Autoinflammatory': 0.002
         }
     },
     
@@ -1205,6 +1185,9 @@ def update_probabilities_bayesian(
     
     P(category | answer) = P(answer | category) * P(category) / P(answer)
     
+    Includes probability floor (0.5%) to prevent premature elimination of categories.
+    This prevents overconfident early convergence and keeps differential alive.
+    
     Args:
         current_probs: Current probability distribution
         question_id: Question that was answered
@@ -1235,9 +1218,16 @@ def update_probabilities_bayesian(
     updated = {}
     for cat in IEI_CATEGORIES:
         # Bayes' theorem
-        updated[cat] = (
+        posterior = (
             answer_probs.get(cat, 0) * current_probs.get(cat, 0) / p_answer
         )
+        # Apply floor: minimum 0.5% to keep all categories alive
+        updated[cat] = max(posterior, 0.005)
+    
+    # Re-normalize to ensure sum = 1.0
+    total = sum(updated.values())
+    if total > 0:
+        updated = {cat: prob / total for cat, prob in updated.items()}
     
     return updated
 
