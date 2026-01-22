@@ -1394,12 +1394,13 @@ class IEIDiagnosticEngine:
         max_prob = max(self.current_probs.values())
         current_entropy = calculate_entropy(self.current_probs)
         
-        # Stop if very high confidence OR very low entropy
-        if max_prob >= 0.95 or current_entropy < 0.3:
+        # Stop if VERY high confidence OR very low entropy
+        # Relaxed criteria to allow more questions
+        if max_prob >= 0.98 or current_entropy < 0.2:
             return {
                 'status': 'diagnosis_reached',
                 'top_diagnosis': self.get_top_diagnoses(n=1)[0],
-                'differential': self.get_top_diagnoses(n=5),
+                'differential': self.get_top_diagnoses(n=8),  # Show all 8 categories
                 'confidence': max_prob,
                 'entropy': current_entropy,
                 'current_probabilities': self.current_probs
@@ -1415,7 +1416,7 @@ class IEIDiagnosticEngine:
             # No more questions, return top differential
             return {
                 'status': 'questions_exhausted',
-                'differential': self.get_top_diagnoses(n=5),
+                'differential': self.get_top_diagnoses(n=8),  # Show all 8 categories
                 'entropy': current_entropy,
                 'current_probabilities': self.current_probs
             }

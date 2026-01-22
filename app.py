@@ -197,7 +197,7 @@ with tab1:
             
             differential = result.get('differential', [])
             if differential:
-                st.write("**Differential Diagnosis (Top 5):**")
+                st.write("**Differential Diagnosis (All Categories):**")
                 for i, (cat, prob) in enumerate(differential, 1):
                     st.write(f"{i}. {cat.replace('_', ' ')}: {prob*100:.1f}%")
         
