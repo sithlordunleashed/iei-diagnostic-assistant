@@ -14,14 +14,14 @@ from collections import defaultdict
 # ============================================================================
 
 IEI_CATEGORIES = [
-    'Combined_ID',              # SCID, CID, syndromic combined
+    'Combined_ID',              # SCID, CID, syndromic combined (WAS, DiGeorge, Omenn)
     'Antibody_Deficiency',      # CVID, XLA, SAD, IgAD, IgG subclass
-    'Phagocyte_Defect',         # CGD, LAD, HIES, cyclic neutropenia
+    'Phagocyte_Defect',         # CGD, LAD, HIES, cyclic neutropenia, Chédiak-Higashi
     'Complement_Deficiency',    # Classical, alternative, lectin pathways
     'Autoinflammatory',         # FMF, CAPS, TRAPS, Blau, PAPA
-    'Immune_Dysregulation',     # IPEX, APECED, HLH, ALPS, cytokine defects
-    'Innate_Immunity',          # MSMD, CMC, viral susceptibility, TLR defects
-    'Bone_Marrow_Failure'       # Wiskott-Aldrich, thrombocytopenia syndromes
+    'Immune_Dysregulation',     # IPEX, APECED, HLH, ALPS, cytokine defects, autoimmune lymphoproliferative
+    'Innate_Immunity',          # MSMD, CMC, viral susceptibility, TLR defects, NEMO
+    'Bone_Marrow_Failure'       # Congenital neutropenia, true marrow failure (NOT WAS - that's Combined_ID)
 ]
 
 # ============================================================================
@@ -61,9 +61,9 @@ PATHOGNOMONIC_PATTERNS = [
     ),
     PathognomicPattern(
         name="Wiskott-Aldrich Syndrome",
-        triggers=["Q7:Yes", "Q2:Yes", "Q17:Thrombocytopenia"],
+        triggers=["Q7:Yes_severe", "Q2:Yes_severe", "Q17:Thrombocytopenia"],
         probability=0.90,
-        category="Bone_Marrow_Failure",
+        category="Combined_ID",  # WAS is combined immunodeficiency, not marrow failure
         confirm_with=["Q6", "Q15", "Q36"]  # Male? Microbes? Consanguinity?
     ),
     PathognomicPattern(
@@ -561,9 +561,9 @@ CONDITIONAL_PROBABILITIES = {
     # Q17: Cytopenias - Bone marrow and dysregulation
     "Q17": {
         "Thrombocytopenia": {
-            'Bone_Marrow_Failure': 0.45,   # WAS primarily
-            'Immune_Dysregulation': 0.30,  # Autoimmune cytopenias
-            'Combined_ID': 0.10,
+            'Combined_ID': 0.40,           # WAS primarily
+            'Immune_Dysregulation': 0.30,  # Autoimmune cytopenias (ALPS, CVID with ITP)
+            'Bone_Marrow_Failure': 0.15,   # True marrow failure
             'Antibody_Deficiency': 0.08,   # CVID with ITP
             'Phagocyte_Defect': 0.04,
             'Autoinflammatory': 0.02,
@@ -651,34 +651,34 @@ CONDITIONAL_PROBABILITIES = {
     # Q2: Bleeding tendency - Platelet/coagulation issues
     "Q2": {
         "Yes_severe": {
-            'Bone_Marrow_Failure': 0.70,   # WAS, congenital thrombocytopenia
-            'Immune_Dysregulation': 0.15,  # Severe autoimmune cytopenias
-            'Complement_Deficiency': 0.08,  # Some complement defects
-            'Combined_ID': 0.04,
-            'Antibody_Deficiency': 0.02,
-            'Phagocyte_Defect': 0.005,
-            'Innate_Immunity': 0.003,
-            'Autoinflammatory': 0.002
+            'Combined_ID': 0.45,           # WAS is here (thrombocytopenia + immunodeficiency)
+            'Immune_Dysregulation': 0.25,  # Severe autoimmune cytopenias
+            'Bone_Marrow_Failure': 0.15,   # True marrow failure (congenital thrombocytopenia)
+            'Complement_Deficiency': 0.08,
+            'Antibody_Deficiency': 0.04,
+            'Phagocyte_Defect': 0.02,
+            'Innate_Immunity': 0.005,
+            'Autoinflammatory': 0.005
         },
         "Yes_mild": {
             'Immune_Dysregulation': 0.35,  # CVID with ITP
-            'Bone_Marrow_Failure': 0.30,
-            'Antibody_Deficiency': 0.20,
+            'Antibody_Deficiency': 0.25,
+            'Combined_ID': 0.15,           # Mild WAS variants
+            'Bone_Marrow_Failure': 0.12,
             'Complement_Deficiency': 0.08,
-            'Combined_ID': 0.04,
-            'Autoinflammatory': 0.02,
-            'Phagocyte_Defect': 0.005,
+            'Autoinflammatory': 0.03,
+            'Phagocyte_Defect': 0.015,
             'Innate_Immunity': 0.005
         },
         "No": {
-            'Antibody_Deficiency': 0.50,
-            'Phagocyte_Defect': 0.20,
+            'Antibody_Deficiency': 0.48,
+            'Phagocyte_Defect': 0.18,
             'Autoinflammatory': 0.12,
-            'Combined_ID': 0.08,
-            'Innate_Immunity': 0.05,
-            'Complement_Deficiency': 0.03,
-            'Immune_Dysregulation': 0.015,
-            'Bone_Marrow_Failure': 0.005
+            'Innate_Immunity': 0.10,
+            'Complement_Deficiency': 0.06,
+            'Combined_ID': 0.03,
+            'Immune_Dysregulation': 0.02,
+            'Bone_Marrow_Failure': 0.01
         }
     },
     
@@ -709,14 +709,14 @@ CONDITIONAL_PROBABILITIES = {
     # Q7: Eczema/rash - T-cell, allergic, phagocyte
     "Q7": {
         "Yes_severe": {
-            'Phagocyte_Defect': 0.40,      # HIES
-            'Combined_ID': 0.30,           # Omenn, some SCID
-            'Bone_Marrow_Failure': 0.15,   # WAS
-            'Immune_Dysregulation': 0.10,  # IPEX
-            'Innate_Immunity': 0.03,
-            'Antibody_Deficiency': 0.015,
-            'Autoinflammatory': 0.003,
-            'Complement_Deficiency': 0.002
+            'Combined_ID': 0.40,           # WAS, Omenn, some SCID
+            'Phagocyte_Defect': 0.30,      # HIES
+            'Immune_Dysregulation': 0.15,  # IPEX
+            'Bone_Marrow_Failure': 0.08,   # True marrow syndromes
+            'Innate_Immunity': 0.04,
+            'Antibody_Deficiency': 0.02,
+            'Autoinflammatory': 0.005,
+            'Complement_Deficiency': 0.005
         },
         "Yes_mild": {
             'Antibody_Deficiency': 0.40,   # CVID, IgAD with atopy
@@ -1361,26 +1361,31 @@ class IEIDiagnosticEngine:
         self.answers[question_id] = answer
         self.asked_questions.append(question_id)
         
-        # Check for pathognomonic patterns first
-        pattern_match = check_pathognomonic_patterns(
-            self.answers, 
-            PATHOGNOMONIC_PATTERNS
-        )
+        # MINIMUM QUESTIONS THRESHOLD: Must ask at least 10 questions
+        # Check this BEFORE pattern detection to ensure comprehensive assessment
+        min_questions_met = len(self.asked_questions) >= 10
         
-        if pattern_match:
-            pattern, confidence = pattern_match
-            self.pathognomonic_match = pattern
+        # Check for pathognomonic patterns ONLY if minimum questions met
+        if min_questions_met:
+            pattern_match = check_pathognomonic_patterns(
+                self.answers, 
+                PATHOGNOMONIC_PATTERNS
+            )
             
-            # If very high confidence, suggest confirmation questions
-            if confidence >= 0.90:
-                return {
-                    'status': 'pattern_detected',
-                    'suspected_diagnosis': pattern.name,
-                    'confidence': confidence,
-                    'category': pattern.category,
-                    'confirm_with': pattern.confirm_with,
-                    'current_probabilities': self.current_probs
-                }
+            if pattern_match:
+                pattern, confidence = pattern_match
+                self.pathognomonic_match = pattern
+                
+                # If very high confidence, suggest confirmation questions
+                if confidence >= 0.90:
+                    return {
+                        'status': 'pattern_detected',
+                        'suspected_diagnosis': pattern.name,
+                        'confidence': confidence,
+                        'category': pattern.category,
+                        'confirm_with': pattern.confirm_with,
+                        'current_probabilities': self.current_probs
+                    }
         
         # Update probabilities using Bayes' theorem
         self.current_probs = update_probabilities_bayesian(
@@ -1395,8 +1400,8 @@ class IEIDiagnosticEngine:
         current_entropy = calculate_entropy(self.current_probs)
         
         # Stop if VERY high confidence OR very low entropy
-        # Relaxed criteria to allow more questions
-        if max_prob >= 0.98 or current_entropy < 0.2:
+        # BUT only after asking minimum questions
+        if min_questions_met and (max_prob >= 0.98 or current_entropy < 0.2):
             return {
                 'status': 'diagnosis_reached',
                 'top_diagnosis': self.get_top_diagnoses(n=1)[0],
