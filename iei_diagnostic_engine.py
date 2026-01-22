@@ -317,11 +317,11 @@ CONDITIONAL_PROBABILITIES = {
             'Bone_Marrow_Failure': 0.005
         },
         "Virus": {
-            'Combined_ID': 0.45,           # T-cell deficiency
-            'Bone_Marrow_Failure': 0.15,   # WAS, XLP
-            'Immune_Dysregulation': 0.15,  # Viral-triggered HLH
-            'Antibody_Deficiency': 0.10,
-            'Innate_Immunity': 0.10,       # Viral susceptibility syndromes
+            'Combined_ID': 0.55,           # T-cell deficiency (increased from 0.45)
+            'Innate_Immunity': 0.15,       # Viral susceptibility syndromes
+            'Immune_Dysregulation': 0.12,  # Viral-triggered HLH
+            'Antibody_Deficiency': 0.08,   # Reduced from 0.10
+            'Bone_Marrow_Failure': 0.05,   # WAS, XLP (reduced)
             'Phagocyte_Defect': 0.03,
             'Autoinflammatory': 0.01,
             'Complement_Deficiency': 0.01
@@ -415,13 +415,13 @@ CONDITIONAL_PROBABILITIES = {
             'Complement_Deficiency': 0.002
         },
         "Hypergammaglobulinemia": {
-            'Immune_Dysregulation': 0.45,  # ALPS, autoimmune lymphoproliferative
-            'Autoinflammatory': 0.25,
-            'Antibody_Deficiency': 0.15,   # CVID with inflammation
-            'Innate_Immunity': 0.08,
-            'Combined_ID': 0.04,
-            'Phagocyte_Defect': 0.02,
-            'Bone_Marrow_Failure': 0.005,
+            'Immune_Dysregulation': 0.35,  # ALPS, autoimmune lymphoproliferative
+            'Combined_ID': 0.25,           # WAS with high IgE/IgA/IgG, some SCID variants
+            'Autoinflammatory': 0.20,
+            'Antibody_Deficiency': 0.10,   # CVID with inflammation (reduced)
+            'Innate_Immunity': 0.05,
+            'Phagocyte_Defect': 0.03,
+            'Bone_Marrow_Failure': 0.015,
             'Complement_Deficiency': 0.005
         },
         "Specific_Deficiency": {
@@ -435,14 +435,14 @@ CONDITIONAL_PROBABILITIES = {
             'Bone_Marrow_Failure': 0.005
         },
         "Normal": {
-            'Phagocyte_Defect': 0.30,
-            'Autoinflammatory': 0.25,
-            'Innate_Immunity': 0.20,
-            'Complement_Deficiency': 0.12,
-            'Immune_Dysregulation': 0.08,
-            'Bone_Marrow_Failure': 0.03,
-            'Antibody_Deficiency': 0.01,
-            'Combined_ID': 0.01
+            'Phagocyte_Defect': 0.28,
+            'Combined_ID': 0.22,           # WAS, some combined IDs have normal total Ig
+            'Autoinflammatory': 0.20,
+            'Innate_Immunity': 0.15,
+            'Complement_Deficiency': 0.10,
+            'Immune_Dysregulation': 0.04,
+            'Antibody_Deficiency': 0.005,  # Essentially rules out antibody deficiency
+            'Bone_Marrow_Failure': 0.005
         }
     },
     
@@ -1361,9 +1361,9 @@ class IEIDiagnosticEngine:
         self.answers[question_id] = answer
         self.asked_questions.append(question_id)
         
-        # MINIMUM QUESTIONS THRESHOLD: Must ask at least 10 questions
+        # MINIMUM QUESTIONS THRESHOLD: Must ask at least 15 questions
         # Check this BEFORE pattern detection to ensure comprehensive assessment
-        min_questions_met = len(self.asked_questions) >= 10
+        min_questions_met = len(self.asked_questions) >= 15
         
         # Check for pathognomonic patterns ONLY if minimum questions met
         if min_questions_met:
@@ -1401,7 +1401,8 @@ class IEIDiagnosticEngine:
         
         # Stop if VERY high confidence OR very low entropy
         # BUT only after asking minimum questions
-        if min_questions_met and (max_prob >= 0.98 or current_entropy < 0.2):
+        # Raised threshold to 99.5% to prevent overconfidence
+        if min_questions_met and (max_prob >= 0.995 or current_entropy < 0.15):
             return {
                 'status': 'diagnosis_reached',
                 'top_diagnosis': self.get_top_diagnoses(n=1)[0],
