@@ -277,17 +277,23 @@ QUESTIONS = {
 def initialize_prior_probabilities() -> Dict[str, float]:
     """
     Initialize prior probabilities for each IEI category
-    Based on global prevalence estimates
+    
+    FLATTENED PRIORS: In a specialized IEI clinic setting, we start more agnostic
+    and let the diagnostic questions drive the posterior probabilities.
+    This prevents base rate dominance where antibody deficiency overwhelms evidence.
+    
+    These priors reflect a patient who has already been referred for IEI evaluation,
+    not general population prevalence.
     """
     return {
-        'Combined_ID': 0.10,           # Rare but severe
-        'Antibody_Deficiency': 0.45,   # Most common IEI group
-        'Phagocyte_Defect': 0.15,      # Common, often diagnosed
-        'Complement_Deficiency': 0.05,  # Rare
-        'Autoinflammatory': 0.08,      # Increasingly recognized
-        'Immune_Dysregulation': 0.10,  # Heterogeneous group
-        'Innate_Immunity': 0.05,       # MSMD variants common in some regions
-        'Bone_Marrow_Failure': 0.02    # Rare syndromes
+        'Antibody_Deficiency': 0.25,   # DOWN from 0.45 - let questions discriminate
+        'Phagocyte_Defect': 0.15,      # Same - common and well-defined
+        'Combined_ID': 0.15,           # UP from 0.10 - important to catch early
+        'Immune_Dysregulation': 0.12,  # UP from 0.10 - increasingly recognized
+        'Autoinflammatory': 0.10,      # UP from 0.08 - common presentations
+        'Innate_Immunity': 0.10,       # UP from 0.05 - MSMD variants regionally common
+        'Complement_Deficiency': 0.08, # UP from 0.05 - underdiagnosed
+        'Bone_Marrow_Failure': 0.05    # UP from 0.02 - rare but important
     }
 
 # Conditional probabilities: P(Answer | Category)
