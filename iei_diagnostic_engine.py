@@ -54,9 +54,9 @@ class Question:
 PATHOGNOMONIC_PATTERNS = [
     PathognomicPattern(
         name="Ataxia-Telangiectasia",
-        triggers=["Q23:Yes"],  # Both ataxia AND telangiectasia
+        triggers=["Q23:Yes_both"],  # Both ataxia AND telangiectasia
         probability=0.95,
-        category="Immune_Dysregulation",
+        category="Combined_ID",  # A-T is syndromic combined (T-cell lymphopenia + IgA def)
         confirm_with=["Q35", "Q27", "Q12"]  # Lymphoma? Autoimmunity? Low IgA?
     ),
     PathognomicPattern(
@@ -102,6 +102,204 @@ PATHOGNOMONIC_PATTERNS = [
         confirm_with=["Q14", "Q20", "Q40"]  # Dysmorphism? Nails? Teeth retention?
     ),
 ]
+
+# ============================================================================
+# SPECIFIC SYNDROMES - Subcategory Layer (40-50 diagnoses)
+# ============================================================================
+
+# Maps specific syndromes to their broad categories
+SPECIFIC_SYNDROMES = {
+    # Combined Immunodeficiencies (Syndromic)
+    'WAS': 'Combined_ID',
+    'HIES_STAT3': 'Combined_ID',
+    'DiGeorge': 'Combined_ID',
+    'SCID_TB_minus': 'Combined_ID',
+    'SCID_TB_plus': 'Combined_ID',
+    'Omenn': 'Combined_ID',
+    'DOCK8': 'Combined_ID',
+    'Ataxia_Telangiectasia': 'Combined_ID',
+    'RAG_deficiency': 'Combined_ID',
+    'ADA_deficiency': 'Combined_ID',
+    
+    # Antibody Deficiencies
+    'CVID': 'Antibody_Deficiency',
+    'XLA': 'Antibody_Deficiency',
+    'SAD': 'Antibody_Deficiency',
+    'IgA_deficiency': 'Antibody_Deficiency',
+    'HIGM': 'Antibody_Deficiency',
+    'IgG_subclass': 'Antibody_Deficiency',
+    
+    # Phagocyte Defects
+    'CGD_X_linked': 'Phagocyte_Defect',
+    'CGD_AR': 'Phagocyte_Defect',
+    'LAD1': 'Phagocyte_Defect',
+    'LAD2': 'Phagocyte_Defect',
+    'Chediak_Higashi': 'Phagocyte_Defect',
+    'G6PD_deficiency': 'Phagocyte_Defect',
+    'MPO_deficiency': 'Phagocyte_Defect',
+    
+    # Immune Dysregulation
+    'ALPS': 'Immune_Dysregulation',
+    'APECED': 'Immune_Dysregulation',
+    'IPEX': 'Immune_Dysregulation',
+    'FHL': 'Immune_Dysregulation',
+    'XLP': 'Immune_Dysregulation',
+    'CTLA4_deficiency': 'Immune_Dysregulation',
+    'LRBA_deficiency': 'Immune_Dysregulation',
+    
+    # Innate Immunity
+    'NEMO': 'Innate_Immunity',
+    'MSMD_IFNGR': 'Innate_Immunity',
+    'MSMD_IL12': 'Innate_Immunity',
+    'CMC_STAT1': 'Innate_Immunity',
+    'CMC_CARD9': 'Innate_Immunity',
+    'GATA2': 'Innate_Immunity',
+    
+    # Autoinflammatory
+    'FMF': 'Autoinflammatory',
+    'CAPS': 'Autoinflammatory',
+    'TRAPS': 'Autoinflammatory',
+    'Blau': 'Autoinflammatory',
+    'PAPA': 'Autoinflammatory',
+    'PFAPA': 'Autoinflammatory',
+    
+    # Complement
+    'C1q_deficiency': 'Complement_Deficiency',
+    'C3_deficiency': 'Complement_Deficiency',
+    'MBL_deficiency': 'Complement_Deficiency',
+    'Properdin_deficiency': 'Complement_Deficiency',
+    
+    # Bone Marrow Failure
+    'Severe_congenital_neutropenia': 'Bone_Marrow_Failure',
+    'Cyclic_neutropenia': 'Bone_Marrow_Failure',
+    'Shwachman_Diamond': 'Bone_Marrow_Failure',
+}
+
+# Evidence scoring rules - questions that strongly suggest specific syndromes
+EVIDENCE_RULES = {
+    'Ataxia_Telangiectasia': [
+        ('Q23', 'Yes_both', 100),          # Pathognomonic
+        ('Q23', 'Yes_telangiectasia', 60),
+        ('Q23', 'Yes_ataxia', 40),
+        ('Q35', 'Yes', 30),                # Lymphoma
+        ('Q27', 'Yes_systemic', 20),       # Autoimmunity
+        ('Q12', 'Specific_Deficiency', 15),# IgA deficiency
+    ],
+    'WAS': [
+        ('Q2', 'Yes_severe', 50),          # Severe bleeding
+        ('Q7', 'Yes_severe', 40),          # Severe eczema
+        ('Q17', 'Thrombocytopenia', 50),   # Thrombocytopenia
+        ('Q6', 'Male', 30),                # X-linked
+        ('Q15', 'Virus', 20),              # Viral infections
+        ('Q12', 'Hypergammaglobulinemia', 15), # High IgE/IgA
+    ],
+    'NEMO': [
+        ('Q32', 'Yes', 100),               # Pathognomonic - ectodermal dysplasia
+        ('Q20', 'Yes', 40),                # Dystrophic nails
+        ('Q6', 'Male', 30),                # X-linked
+        ('Q15', 'Mycobacteria', 30),       # MSMD overlap
+        ('Q13', 'Yes_other', 20),          # Congenital anomalies
+    ],
+    'CGD_X_linked': [
+        ('Q15', 'Fungi', 50),              # Fungi primary
+        ('Q16', 'Yes_two_types', 40),      # Fungi + bacteria
+        ('Q8', 'Yes', 50),                 # Abscesses
+        ('Q45', 'Yes', 50),                # Granulomas (Q45 not added yet)
+        ('Q41', 'Yes', 30),                # Pneumatoceles (Q41 not added yet)
+        ('Q6', 'Male', 30),                # X-linked
+        ('Q25', 'Yes', 25),                # Complicated pneumonia
+    ],
+    'CGD_AR': [
+        ('Q15', 'Fungi', 50),
+        ('Q16', 'Yes_two_types', 40),
+        ('Q8', 'Yes', 50),
+        ('Q45', 'Yes', 50),
+        ('Q41', 'Yes', 30),
+        ('Q36', 'Yes', 30),                # Consanguinity (Q36 not added yet)
+        ('Q25', 'Yes', 25),
+    ],
+    'HIES_STAT3': [
+        ('Q7', 'Yes_severe', 50),          # Severe eczema
+        ('Q8', 'Yes', 40),                 # Abscesses
+        ('Q18', 'Yes_eosinophilia', 50),   # Eosinophilia
+        ('Q20', 'Yes', 40),                # Dystrophic nails
+        ('Q14', 'Yes', 35),                # Dysmorphism
+        ('Q24', 'Yes', 30),                # Bronchiectases
+        ('Q40', 'Yes', 30),                # Retained teeth (Q40 not added yet)
+        ('Q12', 'Hypergammaglobulinemia', 20), # High IgE
+    ],
+    'DiGeorge': [
+        ('Q33', 'Yes', 90),                # Absent/hypoplastic thymus - pathognomonic
+        ('Q13', 'Yes_cardiac', 60),        # Cardiac malformation
+        ('Q14', 'Yes', 40),                # Dysmorphism
+        ('Q1', '<6mo', 30),                # Early onset
+        ('Q13', 'Yes_multiple', 50),       # Multiple malformations
+    ],
+    'SCID_TB_minus': [
+        ('Q33', 'Yes', 80),                # Absent thymus
+        ('Q1', '<6mo', 60),                # Very early onset
+        ('Q5', 'Yes_Multiple', 50),        # Multiple vaccine reactions
+        ('Q43', 'Yes', 40),                # FTT (Q43 not added yet)
+        ('Q46', 'Yes', 40),                # Opportunistic (Q46 not added yet)
+        ('Q17', 'Lymphopenia', 50),        # Lymphopenia
+    ],
+    'SCID_TB_plus': [
+        ('Q33', 'Yes', 80),
+        ('Q1', '<6mo', 60),
+        ('Q5', 'Yes_Multiple', 50),
+        ('Q43', 'Yes', 40),
+        ('Q46', 'Yes', 40),
+        ('Q17', 'Lymphopenia', 40),
+    ],
+    'LAD1': [
+        ('Q39', 'Yes', 100),               # Late umbilical stump - pathognomonic (Q39 not added yet)
+        ('Q40', 'Yes', 60),                # Retained teeth (Q40 not added yet)
+        ('Q8', 'Yes', 40),                 # Abscesses
+        ('Q18', 'Yes_leukocytosis', 50),   # Leukocytosis
+        ('Q36', 'Yes', 30),                # Consanguinity (Q36 not added yet)
+    ],
+    'APECED': [
+        ('Q10', 'Yes', 70),                # CMC
+        ('Q27', 'Yes_organ_specific', 60), # Organ-specific autoimmunity
+        ('Q21', 'Yes', 40),                # Alopecia/vitiligo
+        ('Q31', 'Yes', 30),                # Can have IBD
+        ('Q36', 'Yes', 25),                # Often AR (Q36 not added yet)
+    ],
+    'FHL': [
+        ('Q28', 'Yes', 90),                # HLH - primary feature
+        ('Q1', '<6mo', 40),                # Can be early
+        ('Q37', 'Yes', 40),                # Family history (Q37 not added yet)
+        ('Q29', 'Yes', 30),                # ICU admission
+    ],
+    'XLP': [
+        ('Q28', 'Yes', 60),                # HLH triggered by EBV
+        ('Q6', 'Male', 50),                # X-linked
+        ('Q35', 'Yes', 40),                # Lymphoma
+        ('Q37', 'Yes', 35),                # Family history (Q37 not added yet)
+    ],
+    'CVID': [
+        ('Q12', 'Hypogammaglobulinemia', 50),
+        ('Q3', 'Yes_multiple_pathogens', 40),
+        ('Q1', '12+_years', 40),           # Later onset
+        ('Q4', 'Sinopulmonary', 35),
+        ('Q24', 'Yes', 30),                # Bronchiectases
+        ('Q27', 'Yes_systemic', 25),       # Autoimmunity
+    ],
+    'XLA': [
+        ('Q12', 'Hypogammaglobulinemia', 60),
+        ('Q6', 'Male', 60),                # X-linked
+        ('Q1', '6mo-5yr', 40),             # Typical onset
+        ('Q3', 'Yes_multiple_pathogens', 35),
+        ('Q4', 'Sinopulmonary', 35),
+    ],
+    'FMF': [
+        ('Q9', 'Yes', 60),                 # Recurrent fever
+        ('Q26', 'Yes', 40),                # Arthritis
+        ('Q3', 'Non_infectious_manifestations', 50),
+        ('Q49', 'Mediterranean', 40),      # Ethnicity (Q49 not added yet)
+        ('Q36', 'Yes', 30),                # Often AR (Q36 not added yet)
+    ],
+}
 
 # ============================================================================
 # QUESTION DEFINITIONS WITH NODAL WEIGHTS
@@ -1806,7 +2004,10 @@ def calculate_relevance_weight(
 
 class IEIDiagnosticEngine:
     """
-    Main diagnostic engine combining pattern recognition and Shannon entropy
+    Main diagnostic engine combining:
+    1. Evidence accumulation (gestalt/constellation recognition)
+    2. Bayesian probability updates (broad categories)
+    3. Pattern recognition (pathognomonic findings)
     """
     
     def __init__(self):
@@ -1814,6 +2015,35 @@ class IEIDiagnosticEngine:
         self.answers = {}
         self.asked_questions = []
         self.pathognomonic_match = None
+        
+        # NEW: Evidence accumulator for specific syndromes
+        # Scores persist across questions (gestalt memory)
+        self.evidence_scores = {syndrome: 0 for syndrome in SPECIFIC_SYNDROMES.keys()}
+        
+    def update_evidence_scores(self, question_id: str, answer: str):
+        """
+        Update evidence scores for specific syndromes based on answer
+        
+        This creates "gestalt memory" - evidence accumulates rather than being replaced.
+        Each answer can support multiple syndromes simultaneously.
+        """
+        for syndrome, rules in EVIDENCE_RULES.items():
+            for rule_q, rule_answer, points in rules:
+                if rule_q == question_id and rule_answer == answer:
+                    self.evidence_scores[syndrome] += points
+    
+    def get_top_syndrome_candidates(self, n: int = 5) -> List[Tuple[str, int, str]]:
+        """
+        Get top specific syndrome candidates by evidence score
+        
+        Returns: List of (syndrome_name, evidence_score, broad_category)
+        """
+        candidates = [
+            (syndrome, score, SPECIFIC_SYNDROMES[syndrome])
+            for syndrome, score in self.evidence_scores.items()
+            if score > 0
+        ]
+        return sorted(candidates, key=lambda x: x[1], reverse=True)[:n]
         
     def process_answer(self, question_id: str, answer: str) -> Dict:
         """
@@ -1824,6 +2054,9 @@ class IEIDiagnosticEngine:
         # Store answer
         self.answers[question_id] = answer
         self.asked_questions.append(question_id)
+        
+        # UPDATE EVIDENCE SCORES (gestalt accumulation)
+        self.update_evidence_scores(question_id, answer)
         
         # MINIMUM QUESTIONS THRESHOLD: Must ask at least 15 questions
         # Check this BEFORE pattern detection to ensure comprehensive assessment
@@ -1867,10 +2100,12 @@ class IEIDiagnosticEngine:
         # BUT only after asking minimum questions
         # Raised threshold to 99.5% to prevent overconfidence
         if min_questions_met and (max_prob >= 0.995 or current_entropy < 0.15):
+            syndrome_candidates = self.get_top_syndrome_candidates(n=5)
             return {
                 'status': 'diagnosis_reached',
                 'top_diagnosis': self.get_top_diagnoses(n=1)[0],
                 'differential': self.get_top_diagnoses(n=8),  # Show all 8 categories
+                'syndrome_candidates': syndrome_candidates,  # NEW: Specific syndromes
                 'confidence': max_prob,
                 'entropy': current_entropy,
                 'current_probabilities': self.current_probs
@@ -1884,9 +2119,11 @@ class IEIDiagnosticEngine:
         
         if not available:
             # No more questions, return top differential
+            syndrome_candidates = self.get_top_syndrome_candidates(n=5)
             return {
                 'status': 'questions_exhausted',
                 'differential': self.get_top_diagnoses(n=8),  # Show all 8 categories
+                'syndrome_candidates': syndrome_candidates,  # NEW: Specific syndromes
                 'entropy': current_entropy,
                 'current_probabilities': self.current_probs
             }
@@ -1898,6 +2135,7 @@ class IEIDiagnosticEngine:
             CONDITIONAL_PROBABILITIES
         )
         
+        syndrome_candidates = self.get_top_syndrome_candidates(n=3)
         return {
             'status': 'continue',
             'next_question': next_q,
@@ -1905,6 +2143,7 @@ class IEIDiagnosticEngine:
             'answer_options': QUESTIONS[next_q].answer_options,
             'current_entropy': current_entropy,
             'top_categories': self.get_top_diagnoses(n=3),
+            'syndrome_candidates': syndrome_candidates,  # NEW: Current leading syndromes
             'current_probabilities': self.current_probs
         }
     
