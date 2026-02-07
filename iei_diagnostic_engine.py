@@ -245,6 +245,106 @@ QUESTIONS = {
         is_nodal=False
     ),
     
+    # Batch 2: Pathognomonic markers and severity indicators from original 35
+    "Q22": Question(
+        id="Q22",
+        text="Warts or molluscum contagiosum?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.68,
+        is_nodal=False
+    ),
+    "Q23": Question(
+        id="Q23",
+        text="Ataxia? Telangiectasia?",
+        answer_options=["No", "Yes_ataxia", "Yes_telangiectasia", "Yes_both"],
+        base_information_gain=0.52,
+        is_nodal=False
+    ),
+    "Q24": Question(
+        id="Q24",
+        text="Bronchiectases?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.98,
+        is_nodal=False
+    ),
+    "Q25": Question(
+        id="Q25",
+        text="Complicated pneumonia? (Empyema, lung abscess, necrotizing)",
+        answer_options=["No", "Yes"],
+        base_information_gain=1.20,
+        is_nodal=False
+    ),
+    "Q26": Question(
+        id="Q26",
+        text="Arthritis?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.48,
+        is_nodal=False
+    ),
+    "Q27": Question(
+        id="Q27",
+        text="Autoimmunity? (Lupus, vasculitis, serum autoantibodies)",
+        answer_options=["No", "Yes_organ_specific", "Yes_systemic"],
+        base_information_gain=0.92,
+        is_nodal=False
+    ),
+    "Q28": Question(
+        id="Q28",
+        text="HLH (hemophagocytic lymphohistiocytosis)?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.72,
+        is_nodal=False
+    ),
+    "Q29": Question(
+        id="Q29",
+        text="Intensive care unit admission?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.62,
+        is_nodal=False
+    ),
+    "Q30": Question(
+        id="Q30",
+        text="Neurologic deficit? Developmental delay?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.58,
+        is_nodal=False
+    ),
+    "Q31": Question(
+        id="Q31",
+        text="Inflammatory bowel disease?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.78,
+        is_nodal=False
+    ),
+    "Q32": Question(
+        id="Q32",
+        text="Anhidrotic ectodermal dysplasia?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.38,
+        is_nodal=False
+    ),
+    "Q33": Question(
+        id="Q33",
+        text="Absent thymic shadow? Hypoplastic thymus?",
+        answer_options=["No", "Yes"],
+        base_information_gain=1.35,
+        is_nodal=False
+    ),
+    "Q34": Question(
+        id="Q34",
+        text="Severe atopy?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.88,
+        is_nodal=False
+    ),
+    "Q35": Question(
+        id="Q35",
+        text="Lymphoma? Malignancy?",
+        answer_options=["No", "Yes"],
+        base_information_gain=0.62,
+        is_nodal=False
+    ),
+    
     # Additional high-IG questions (top 10)
     "Q4": Question(
         id="Q4",
@@ -278,22 +378,22 @@ def initialize_prior_probabilities() -> Dict[str, float]:
     """
     Initialize prior probabilities for each IEI category
     
-    FLATTENED PRIORS: In a specialized IEI clinic setting, we start more agnostic
-    and let the diagnostic questions drive the posterior probabilities.
-    This prevents base rate dominance where antibody deficiency overwhelms evidence.
+    MAXIMALLY FLATTENED PRIORS: In a specialized IEI clinic, we start truly agnostic.
+    The top three categories (Antibody, Combined, Phagocyte) are equal at 15%.
+    This ensures questions drive the diagnosis, not epidemiological priors.
     
-    These priors reflect a patient who has already been referred for IEI evaluation,
-    not general population prevalence.
+    These priors reflect a patient already referred for IEI evaluation with
+    sufficient clinical suspicion to warrant comprehensive diagnostic workup.
     """
     return {
-        'Antibody_Deficiency': 0.25,   # DOWN from 0.45 - let questions discriminate
-        'Phagocyte_Defect': 0.15,      # Same - common and well-defined
-        'Combined_ID': 0.15,           # UP from 0.10 - important to catch early
-        'Immune_Dysregulation': 0.12,  # UP from 0.10 - increasingly recognized
-        'Autoinflammatory': 0.10,      # UP from 0.08 - common presentations
-        'Innate_Immunity': 0.10,       # UP from 0.05 - MSMD variants regionally common
-        'Complement_Deficiency': 0.08, # UP from 0.05 - underdiagnosed
-        'Bone_Marrow_Failure': 0.05    # UP from 0.02 - rare but important
+        'Antibody_Deficiency': 0.15,   # DOWN from 0.25 - equal footing
+        'Combined_ID': 0.15,           # Same - critical early detection
+        'Phagocyte_Defect': 0.15,      # Same - common presentations
+        'Immune_Dysregulation': 0.13,  # UP from 0.12 - increasingly recognized
+        'Autoinflammatory': 0.12,      # UP from 0.10 - common in clinic
+        'Innate_Immunity': 0.12,       # UP from 0.10 - regionally important
+        'Complement_Deficiency': 0.10, # UP from 0.08 - underdiagnosed
+        'Bone_Marrow_Failure': 0.08    # UP from 0.05 - rare but critical
     }
 
 # Conditional probabilities: P(Answer | Category)
@@ -1053,6 +1153,374 @@ CONDITIONAL_PROBABILITIES = {
             'Innate_Immunity': 0.03,
             'Bone_Marrow_Failure': 0.015,
             'Phagocyte_Defect': 0.005
+        }
+    },
+    
+    # BATCH 2: Pathognomonic markers and severity indicators
+    
+    # Q22: Warts/molluscum - T-cell and NK deficiency
+    "Q22": {
+        "Yes": {
+            'Combined_ID': 0.50,           # WHIM, DOCK8, T-cell defects
+            'Innate_Immunity': 0.25,       # GATA2, EVER mutations
+            'Immune_Dysregulation': 0.12,
+            'Antibody_Deficiency': 0.08,
+            'Phagocyte_Defect': 0.03,
+            'Bone_Marrow_Failure': 0.015,
+            'Autoinflammatory': 0.003,
+            'Complement_Deficiency': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Autoinflammatory': 0.15,
+            'Immune_Dysregulation': 0.14,
+            'Combined_ID': 0.13,
+            'Innate_Immunity': 0.11,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q23: Ataxia/telangiectasia - PATHOGNOMONIC for A-T
+    "Q23": {
+        "Yes_both": {
+            'Immune_Dysregulation': 0.95,  # Ataxia-telangiectasia
+            'Combined_ID': 0.03,
+            'Antibody_Deficiency': 0.015,
+            'Phagocyte_Defect': 0.002,
+            'Innate_Immunity': 0.001,
+            'Autoinflammatory': 0.001,
+            'Complement_Deficiency': 0.0005,
+            'Bone_Marrow_Failure': 0.0005
+        },
+        "Yes_telangiectasia": {
+            'Immune_Dysregulation': 0.70,  # Likely A-T
+            'Combined_ID': 0.15,
+            'Antibody_Deficiency': 0.08,
+            'Phagocyte_Defect': 0.04,
+            'Innate_Immunity': 0.02,
+            'Complement_Deficiency': 0.005,
+            'Autoinflammatory': 0.003,
+            'Bone_Marrow_Failure': 0.002
+        },
+        "Yes_ataxia": {
+            'Immune_Dysregulation': 0.45,  # Could be A-T
+            'Combined_ID': 0.25,
+            'Antibody_Deficiency': 0.15,
+            'Innate_Immunity': 0.08,
+            'Phagocyte_Defect': 0.04,
+            'Complement_Deficiency': 0.02,
+            'Autoinflammatory': 0.005,
+            'Bone_Marrow_Failure': 0.005
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Combined_ID': 0.16,
+            'Autoinflammatory': 0.14,
+            'Immune_Dysregulation': 0.11,
+            'Innate_Immunity': 0.12,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q24: Bronchiectases - Chronic infection/inflammation
+    "Q24": {
+        "Yes": {
+            'Antibody_Deficiency': 0.45,   # CVID, XLA with chronic infection
+            'Phagocyte_Defect': 0.25,      # CGD, HIES
+            'Combined_ID': 0.15,           # Some combined with chronic infection
+            'Innate_Immunity': 0.08,
+            'Immune_Dysregulation': 0.04,
+            'Complement_Deficiency': 0.02,
+            'Autoinflammatory': 0.005,
+            'Bone_Marrow_Failure': 0.005
+        },
+        "No": {
+            'Autoinflammatory': 0.18,
+            'Combined_ID': 0.17,
+            'Immune_Dysregulation': 0.15,
+            'Innate_Immunity': 0.14,
+            'Phagocyte_Defect': 0.13,
+            'Antibody_Deficiency': 0.11,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q25: Complicated pneumonia - Severe defects
+    "Q25": {
+        "Yes": {
+            'Phagocyte_Defect': 0.40,      # CGD, severe neutrophil defects
+            'Combined_ID': 0.25,           # Severe T-cell defects
+            'Antibody_Deficiency': 0.18,   # Severe hypogammaglobulinemia
+            'Complement_Deficiency': 0.10,
+            'Immune_Dysregulation': 0.04,
+            'Innate_Immunity': 0.02,
+            'Bone_Marrow_Failure': 0.008,
+            'Autoinflammatory': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Autoinflammatory': 0.17,
+            'Immune_Dysregulation': 0.15,
+            'Innate_Immunity': 0.14,
+            'Combined_ID': 0.13,
+            'Phagocyte_Defect': 0.11,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q26: Arthritis - Autoinflammatory and dysregulation
+    "Q26": {
+        "Yes": {
+            'Autoinflammatory': 0.45,
+            'Immune_Dysregulation': 0.25,
+            'Antibody_Deficiency': 0.15,   # CVID with arthritis
+            'Complement_Deficiency': 0.08,
+            'Combined_ID': 0.04,
+            'Innate_Immunity': 0.02,
+            'Phagocyte_Defect': 0.008,
+            'Bone_Marrow_Failure': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Combined_ID': 0.16,
+            'Innate_Immunity': 0.14,
+            'Immune_Dysregulation': 0.12,
+            'Autoinflammatory': 0.11,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q27: Autoimmunity - Dysregulation marker
+    "Q27": {
+        "Yes_systemic": {
+            'Immune_Dysregulation': 0.50,  # ALPS, CTLA4, LRBA
+            'Complement_Deficiency': 0.20,  # Lupus-like
+            'Antibody_Deficiency': 0.15,   # CVID with autoimmunity
+            'Autoinflammatory': 0.08,
+            'Combined_ID': 0.04,
+            'Innate_Immunity': 0.02,
+            'Phagocyte_Defect': 0.008,
+            'Bone_Marrow_Failure': 0.002
+        },
+        "Yes_organ_specific": {
+            'Immune_Dysregulation': 0.60,  # APECED, IPEX
+            'Autoinflammatory': 0.15,
+            'Antibody_Deficiency': 0.12,
+            'Combined_ID': 0.08,
+            'Complement_Deficiency': 0.03,
+            'Innate_Immunity': 0.015,
+            'Phagocyte_Defect': 0.003,
+            'Bone_Marrow_Failure': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Combined_ID': 0.16,
+            'Innate_Immunity': 0.14,
+            'Autoinflammatory': 0.13,
+            'Immune_Dysregulation': 0.10,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q28: HLH - Immune dysregulation hallmark
+    "Q28": {
+        "Yes": {
+            'Immune_Dysregulation': 0.75,  # Primary HLH, FHL
+            'Combined_ID': 0.15,           # Some T-cell defects
+            'Bone_Marrow_Failure': 0.05,   # XLP
+            'Innate_Immunity': 0.03,
+            'Antibody_Deficiency': 0.015,
+            'Phagocyte_Defect': 0.003,
+            'Autoinflammatory': 0.001,
+            'Complement_Deficiency': 0.001
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Combined_ID': 0.16,
+            'Innate_Immunity': 0.14,
+            'Autoinflammatory': 0.13,
+            'Immune_Dysregulation': 0.10,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q29: ICU admission - Severity marker
+    "Q29": {
+        "Yes": {
+            'Combined_ID': 0.40,           # Severe presentations
+            'Phagocyte_Defect': 0.25,      # Severe infections
+            'Immune_Dysregulation': 0.15,  # HLH, severe autoimmune
+            'Antibody_Deficiency': 0.10,
+            'Complement_Deficiency': 0.05,
+            'Innate_Immunity': 0.03,
+            'Bone_Marrow_Failure': 0.015,
+            'Autoinflammatory': 0.005
+        },
+        "No": {
+            'Antibody_Deficiency': 0.20,
+            'Autoinflammatory': 0.17,
+            'Innate_Immunity': 0.15,
+            'Immune_Dysregulation': 0.14,
+            'Phagocyte_Defect': 0.13,
+            'Combined_ID': 0.10,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.03
+        }
+    },
+    
+    # Q30: Neurologic deficit - Syndromic IEI
+    "Q30": {
+        "Yes": {
+            'Immune_Dysregulation': 0.40,  # A-T, other neurologic IEI
+            'Combined_ID': 0.30,           # Some syndromic SCID
+            'Innate_Immunity': 0.15,       # NEMO with neurologic features
+            'Bone_Marrow_Failure': 0.08,
+            'Phagocyte_Defect': 0.04,
+            'Antibody_Deficiency': 0.02,
+            'Complement_Deficiency': 0.008,
+            'Autoinflammatory': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.19,
+            'Phagocyte_Defect': 0.17,
+            'Combined_ID': 0.15,
+            'Autoinflammatory': 0.14,
+            'Innate_Immunity': 0.13,
+            'Immune_Dysregulation': 0.10,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q31: IBD - Dysregulation and some combined
+    "Q31": {
+        "Yes": {
+            'Immune_Dysregulation': 0.50,  # IPEX, IL-10 pathway
+            'Combined_ID': 0.25,           # Some T-cell defects
+            'Antibody_Deficiency': 0.12,   # CVID with IBD
+            'Autoinflammatory': 0.08,
+            'Innate_Immunity': 0.03,
+            'Phagocyte_Defect': 0.015,
+            'Complement_Deficiency': 0.003,
+            'Bone_Marrow_Failure': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Combined_ID': 0.15,
+            'Autoinflammatory': 0.14,
+            'Innate_Immunity': 0.14,
+            'Immune_Dysregulation': 0.10,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q32: Anhidrotic ectodermal dysplasia - NEMO/IKBKG
+    "Q32": {
+        "Yes": {
+            'Innate_Immunity': 0.85,       # NEMO deficiency
+            'Combined_ID': 0.10,
+            'Phagocyte_Defect': 0.03,
+            'Immune_Dysregulation': 0.015,
+            'Antibody_Deficiency': 0.003,
+            'Autoinflammatory': 0.001,
+            'Complement_Deficiency': 0.0005,
+            'Bone_Marrow_Failure': 0.0005
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Combined_ID': 0.16,
+            'Autoinflammatory': 0.14,
+            'Immune_Dysregulation': 0.13,
+            'Innate_Immunity': 0.10,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q33: Absent/hypoplastic thymus - SEVERE marker for Combined ID
+    "Q33": {
+        "Yes": {
+            'Combined_ID': 0.90,           # SCID, DiGeorge
+            'Immune_Dysregulation': 0.05,
+            'Bone_Marrow_Failure': 0.03,
+            'Antibody_Deficiency': 0.015,
+            'Phagocyte_Defect': 0.003,
+            'Innate_Immunity': 0.001,
+            'Autoinflammatory': 0.0005,
+            'Complement_Deficiency': 0.0005
+        },
+        "No": {
+            'Antibody_Deficiency': 0.19,
+            'Phagocyte_Defect': 0.17,
+            'Autoinflammatory': 0.14,
+            'Immune_Dysregulation': 0.14,
+            'Innate_Immunity': 0.13,
+            'Combined_ID': 0.11,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q34: Severe atopy - T-cell and dysregulation
+    "Q34": {
+        "Yes": {
+            'Combined_ID': 0.40,           # Omenn, DOCK8, HIES
+            'Immune_Dysregulation': 0.25,  # IPEX
+            'Phagocyte_Defect': 0.15,
+            'Antibody_Deficiency': 0.12,
+            'Innate_Immunity': 0.05,
+            'Bone_Marrow_Failure': 0.02,
+            'Autoinflammatory': 0.008,
+            'Complement_Deficiency': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Autoinflammatory': 0.15,
+            'Innate_Immunity': 0.14,
+            'Immune_Dysregulation': 0.13,
+            'Combined_ID': 0.11,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
+        }
+    },
+    
+    # Q35: Lymphoma/malignancy - Dysregulation and some combined
+    "Q35": {
+        "Yes": {
+            'Immune_Dysregulation': 0.50,  # A-T, ALPS, XLP
+            'Combined_ID': 0.25,           # Some T-cell defects
+            'Antibody_Deficiency': 0.12,   # CVID with lymphoma risk
+            'Bone_Marrow_Failure': 0.08,   # XLP
+            'Innate_Immunity': 0.03,
+            'Phagocyte_Defect': 0.015,
+            'Complement_Deficiency': 0.003,
+            'Autoinflammatory': 0.002
+        },
+        "No": {
+            'Antibody_Deficiency': 0.18,
+            'Phagocyte_Defect': 0.17,
+            'Combined_ID': 0.15,
+            'Autoinflammatory': 0.14,
+            'Innate_Immunity': 0.14,
+            'Immune_Dysregulation': 0.10,
+            'Complement_Deficiency': 0.08,
+            'Bone_Marrow_Failure': 0.04
         }
     }
 }
